@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GreenPaperTech · Dashboard</title>
+  <meta name="description" content="Dashboard de sostenibilidad y optimización energética con IA" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #0f152b;
+      --panel-2:#111836;
+      --text:#e6ecff;
+      --muted:#9db0ff;
+      --brand:#38d39f;
+      --brand-2:#22b8cf;
+      --danger:#ff5d6c;
+      --ok:#6ee7a1;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--text); background:
+        radial-gradient(1200px 600px at -10% -10%, #173058 0%, transparent 60%),
+        radial-gradient(1000px 600px at 110% 10%, #0d2a2a 0%, transparent 55%),
+        var(--bg);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow:hidden;
+    }
+    .app{display:grid; grid-template-columns: 280px 1fr; grid-template-rows: 72px 1fr; height:100%}
+    aside{grid-row:1 / span 2; grid-column:1; padding:18px; background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) , var(--panel-2); border-right:1px solid rgba(255,255,255,.04)}
+    header{grid-column:2; grid-row:1; display:flex; align-items:center; gap:12px; padding:16px 22px; backdrop-filter:saturate(130%) blur(6px); background:rgba(10, 15, 35, .6); border-bottom:1px solid rgba(255,255,255,.06)}
+    main{grid-column:2; grid-row:2; overflow:auto; padding:22px;}
+
+    .brand{display:flex; align-items:center; gap:12px; margin-bottom:18px}
+    .logo{width:42px; height:42px; display:grid; place-items:center; border-radius:14px; background:linear-gradient(135deg, rgba(56,211,159,.25), rgba(34,184,207,.2)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06)}
+    .logo svg{filter:drop-shadow(0 8px 20px rgba(56,211,159,.45))}
+    .brand h1{font-size:18px; margin:0}
+    .brand small{display:block; color:var(--muted); opacity:.85}
+
+    .sidebar-group{margin-top:16px}
+    .nav{list-style:none; padding:0; margin:8px 0}
+    .nav a{display:flex; align-items:center; gap:12px; padding:12px 14px; color:#cfe0ff; text-decoration:none; border-radius:12px; transition:.2s ease; position:relative}
+    .nav a:hover{background:rgba(255,255,255,.05); transform:translateY(-1px)}
+    .nav a.active{background:linear-gradient(90deg, rgba(56,211,159,.12), rgba(34,184,207,.12)); color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+    .pill{margin-top:14px; padding:14px; border-radius:16px; background:linear-gradient(135deg, rgba(56,211,159,.15), rgba(34,184,207,.12)); border:1px solid rgba(255,255,255,.08)}
+    .pill p{margin:0 0 8px 0; color:#d8e6ff}
+    .pill button{width:100%; border:0; padding:10px 12px; border-radius:12px; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#08201c; font-weight:700; cursor:pointer; box-shadow:var(--shadow); transition:.15s}
+    .pill button:hover{transform:translateY(-1px); filter:saturate(1.1)}
+
+    .hamb{display:none}
+    .search{flex:1; display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px}
+    .search input{flex:1; background:transparent; border:0; outline:0; color:var(--text)}
+    .user{display:flex; align-items:center; gap:12px}
+    .avatar{width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #2bd6b2, #6ac8ff)}
+    .tag{padding:6px 10px; border-radius:999px; background:rgba(56,211,159,.15); color:#caffea; border:1px solid rgba(56,211,159,.35); font-weight:600; font-size:12px}
+
+    .grid{display:grid; gap:18px}
+    .grid.cols-4{grid-template-columns: repeat(4, 1fr)}
+    .grid.cols-3{grid-template-columns: 2fr 1.2fr 1.2fr}
+    .grid.cols-2{grid-template-columns: 2fr 1fr}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:18px; box-shadow: var(--shadow); position:relative; overflow:hidden}
+    .card h3{margin:0 0 10px 0; font-size:16px}
+    .sub{color:var(--muted); font-size:13px}
+
+    .kpi{display:flex; align-items:center; gap:14px}
+    .kpi .num{font-size:26px; font-weight:800; letter-spacing:.3px}
+    .kpi small{color:var(--muted)}
+    .trend.up{color:var(--ok)}
+    .trend.down{color:var(--danger)}
+
+    .progress{height:8px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden}
+    .progress > span{display:block; height:100%; background:linear-gradient(90deg, var(--brand), var(--brand-2)); width:0}
+
+    .chart{width:100%; height:180px}
+    .chart path{stroke:url(#grad1); stroke-width:3; fill:rgba(56,211,159,.12)}
+
+    .bars{display:flex; gap:10px; align-items:flex-end; height:140px}
+    .bar{flex:1; background:linear-gradient(180deg, rgba(56,211,159,.8), rgba(34,184,207,.8)); border-radius:10px 10px 0 0; min-width:10px; position:relative}
+    .bar small{position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:11px; color:#cfe0ff}
+
+    .list{display:grid; gap:12px}
+    .item{display:flex; align-items:center; justify-content:space-between; gap:14px}
+    .meter{flex:1; height:8px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden; margin-left:8px}
+    .meter > span{display:block; height:100%; background:linear-gradient(90deg, var(--danger), #ff9f7b)}
+
+    .recs{display:grid; gap:10px}
+    .rec{padding:12px; border-radius:14px; background:rgba(56,211,159,.08); border:1px solid rgba(56,211,159,.25)}
+
+    .section{display:none; animation:fade .25s ease}
+    .section.active{display:block}
+
+    @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+    @keyframes pulseGlow{0%{box-shadow:0 0 0 0 rgba(56,211,159,.45)}70%{box-shadow:0 0 0 14px rgba(56,211,159,0)}100%{box-shadow:0 0 0 0 rgba(56,211,159,0)}}
+
+    .collapse aside{transform:translateX(-100%)}
+    aside, header{transition:.25s ease}
+    .hamb{display:none; border:0; background:rgba(255,255,255,.06); color:var(--text); border-radius:12px; padding:10px}
+
+    @media (max-width: 1100px){
+      .grid.cols-4{grid-template-columns: repeat(2, 1fr)}
+      .grid.cols-3{grid-template-columns: 1fr}
+      .grid.cols-2{grid-template-columns: 1fr}
+    }
+    @media (max-width: 860px){
+      .app{grid-template-columns: 1fr;}
+      aside{position:fixed; z-index:5; left:0; top:0; bottom:0; width:260px}
+      header{grid-column:1}
+      main{grid-column:1}
+      .hamb{display:inline-flex}
+      body{overflow:auto}
+    }
+
+    .fab{position:fixed; right:22px; bottom:22px; padding:12px 14px; border-radius:999px; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#04231f; border:0; font-weight:800; letter-spacing:.3px; cursor:pointer; animation:pulseGlow 2.2s infinite}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside aria-label="Barra lateral de navegación">
+      <div class="brand" aria-label="Marca">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M20.5 3.5C14 4 6 9 5 16c2.5-2.5 6.5-4 9.5-4.5-2 2.5-4 6-4 8.5 5.5 0 9-4.5 9-10.5 0-2.5-.5-4- - -" stroke="#38d39f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>GreenPaperTech</h1>
+          <small>Diseño de interfaz</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-group">
+        <div class="sub">Menú</div>
+        <ul class="nav" id="menu">
+          <li><a href="#" data-section="dashboard" class="active">Dashboard</a></li>
+          <li><a href="#" data-section="users">Usuarios</a></li>
+          <li><a href="#" data-section="monitoring">Monitoreo en tiempo real</a></li>
+          <li><a href="#" data-section="ai">Optimización (IA)</a></li>
+          <li><a href="#" data-section="reports">Reportes</a></li>
+          <li><a href="#" data-section="settings">Configuración</a></li>
+          <li><a href="#" data-section="help">Centro de ayuda</a></li>
+          <li><a href="#" data-section="logout">Cerrar sesión</a></li>
+        </ul>
+      </nav>
+
+      <div class="pill" role="note" aria-label="Tip de sostenibilidad">
+        <p><strong>Consejo verde:</strong><br/> despliega en regiones con menor intensidad de carbono.</p>
+        <button id="quickOptimize">Optimizar ahora</button>
+      </div>
+    </aside>
+
+    <header>
+      <button class="hamb" id="hamb" aria-label="Abrir/Cerrar menú">☰</button>
+      <div class="search" role="search">
+        <input type="search" placeholder="Buscar apps, usuarios o reportes…" />
+        <span class="tag">Beta</span>
+      </div>
+      <div class="user">
+        <span class="sub">Felipe</span>
+        <div class="avatar" aria-hidden="true"></div>
+      </div>
+    </header>
+
+    <main>
+      <section id="dashboard" class="section active" aria-label="Panel principal">
+        <div class="grid cols-4">
+          <div class="card">
+            <h3>Consumo actual (kWh)</h3>
+            <div class="kpi">
+              <div class="num" data-count="124.6">0</div>
+              <small class="trend down">−8.2% vs ayer</small>
+            </div>
+            <div class="progress" aria-label="Progreso de carga">
+              <span style="width:72%"></span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Ahorro energético</h3>
+            <div class="kpi">
+              <div class="num" data-count="28">0</div>
+              <small class="trend up">+3 ptos esta semana</small>
+            </div>
+            <div class="sub">% acumulado desde optimizaciones</div>
+          </div>
+          <div class="card">
+            <h3>Apps analizadas</h3>
+            <div class="kpi">
+              <div class="num" data-count="37">0</div>
+              <small class="sub">últimos 30 días</small>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Huella de carbono</h3>
+            <div class="kpi">
+              <div class="num" data-count="2.9">0</div>
+              <small class="sub">tCO₂e · mes</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols-2" style="margin-top:18px">
+          <div class="card">
+            <h3>Consumo energético en tiempo real</h3>
+            <svg class="chart" viewBox="0 0 600 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="grad1" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#38d39f" />
+                  <stop offset="100%" stop-color="#22b8cf" />
+                </linearGradient>
+              </defs>
+              <path id="linePath" d="M0 120 C 60 140, 120 70, 180 110 S 300 150, 360 95 480 110, 540 80 600 120" />
+            </svg>
+            <div class="sub">CPU, RAM y Red combinados · Refresco simulado</div>
+          </div>
+
+          <div class="card">
+            <h3>Top procesos más demandantes</h3>
+            <div class="list">
+              <div class="item"><span>Video encoder</span><div class="meter"><span style="width:82%"></span></div><small>82%</small></div>
+              <div class="item"><span>Simulación CFD</span><div class="meter"><span style="width:67%"></span></div><small>67%</small></div>
+              <div class="item"><span>ETL nocturno</span><div class="meter"><span style="width:54%"></span></div><small>54%</small></div>
+              <div class="item"><span>API gateway</span><div class="meter"><span style="width:38%"></span></div><small>38%</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid cols-3" style="margin-top:18px">
+          <div class="card">
+            <h3>Recomendaciones de la IA</h3>
+            <div class="recs" id="recs">
+              <div class="rec">Optimiza <b>autoscaling</b> a <b>HPA 50/70</b> para reducir 16% picos de CPU.</div>
+              <div class="rec">Cambia región a <b>us‑west‑Oregon</b> (menor intensidad de carbono).</div>
+              <div class="rec">Habilita <b>gzip/brotli</b> en CDN → −9% de transferencia.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Antes vs Después (tCO₂e)</h3>
+            <div class="bars" aria-hidden="true">
+              <div class="bar" style="height:120px"><small>Antes</small></div>
+              <div class="bar" style="height:80px; filter:brightness(1.05)"><small>Después</small></div>
+            </div>
+            <div class="sub">Comparativa simple de huella de carbono tras optimizaciones</div>
+          </div>
+
+          <div class="card">
+            <h3>Generar reporte</h3>
+            <p class="sub">Exporta PDF/CSV de los últimos 30 días.</p>
+            <button class="fab" id="export">Exportar reporte</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="users" class="section" aria-label="Usuarios y roles">
+        <div class="card">
+          <h3>Gestión de usuarios</h3>
+          <div class="sub">Controla accesos por rol</div>
+          <div class="card" style="margin-top:12px; overflow:auto">
+            <table style="width:100%; border-collapse:collapse">
+              <thead>
+                <tr style="text-align:left">
+                  <th style="padding:12px">Nombre</th>
+                  <th style="padding:12px">Rol</th>
+                  <th style="padding:12px">Estado</th>
+                  <th style="padding:12px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="userTable"></tbody>
+            </table>
+          </div>
+          <button class="fab" id="addUser">Agregar usuario</button>
+        </div>
+      </section>
+
+      <section id="monitoring" class="section" aria-label="Monitoreo en tiempo real">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>CPU · Live <small id="cpuPct" style="float:right; color:var(--muted)">--%</small></h3>
+            <svg class="chart" viewBox="0 0 600 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="cpuGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#38d39f" />
+                  <stop offset="100%" stop-color="#22b8cf" />
+                </linearGradient>
+              </defs>
+              <path id="cpuPath" d="M0 140 60 120 120 100 180 130 240 80 300 110 360 95 420 110 480 100 540 130 600 120" stroke="url(#cpuGrad)" stroke-width="3" fill="rgba(34,184,207,.08)" />
+            </svg>
+          </div>
+          <div class="card">
+            <h3>Memoria · Live <small id="ramPct" style="float:right; color:var(--muted)">--%</small></h3>
+            <svg class="chart" viewBox="0 0 600 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="ramGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#ffd18f" />
+                  <stop offset="100%" stop-color="#ff9f7b" />
+                </linearGradient>
+              </defs>
+              <path id="ramPath" d="M0 150 60 140 120 120 180 130 240 125 300 118 360 112 420 104 480 96 540 92 600 88" stroke="url(#ramGrad)" stroke-width="3" fill="rgba(255,209,143,.06)" />
+            </svg>
+          </div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>Alertas</h3>
+          <ul>
+            <li style="color:var(--danger)">Pico de CPU > 90% en app <b>encoder‑01</b> (12:41)</li>
+            <li style="color:#ffd18f">Memoria sostenida > 75% en <b>etl‑batch</b> (12:27)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="ai" class="section" aria-label="Optimización por IA">
+        <div class="card">
+          <h3>Motor de optimización</h3>
+          <p class="sub">Ingresa una meta y deja que la IA proponga cambios.</p>
+          <div style="display:flex; gap:10px; margin-top:10px">
+            <input id="goal" placeholder="Ej: Reducir 20% consumo en backend" style="flex:1; padding:12px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)"/>
+            <button id="runAI" style="padding:12px 16px; border-radius:12px; border:0; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#05221d; font-weight:800">Generar plan</button>
+          </div>
+          <div id="aiPlan" class="recs" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <section id="reports" class="section" aria-label="Reportes">
+        <div class="card">
+          <h3>Reportes históricos</h3>
+          <p class="sub">Filtra por rango y exporta</p>
+          <div style="display:flex; gap:10px; margin:12px 0">
+            <input type="date" style="padding:10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)">
+            <input type="date" style="padding:10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)">
+            <button id="genReport" style="padding:10px 14px; border-radius:10px; border:0; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#05221d; font-weight:800">Generar</button>
+          </div>
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>Ahorro mensual</h3>
+              <div class="bars">
+                <div class="bar" style="height:60px"><small>Ene</small></div>
+                <div class="bar" style="height:70px"><small>Feb</small></div>
+                <div class="bar" style="height:90px"><small>Mar</small></div>
+                <div class="bar" style="height:110px"><small>Abr</small></div>
+                <div class="bar" style="height:120px"><small>May</small></div>
+                <div class="bar" style="height:140px"><small>Jun</small></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Huella (tCO₂e)</h3>
+              <svg class="chart" viewBox="0 0 600 200"><path d="M0 160 100 150 200 145 300 130 400 110 500 95 600 80"/></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings" class="section" aria-label="Configuraciones">
+        <div class="card">
+          <h3>Preferencias</h3>
+          <div class="grid cols-4" style="margin-top:10px">
+            <div>
+              <div class="sub">Idioma</div>
+              <select style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)">
+                <option>Español</option>
+                <option>English</option>
+              </select>
+            </div>
+            <div>
+              <div class="sub">Notificaciones</div>
+              <label><input type="checkbox" checked> Alertas críticas</label><br>
+              <label><input type="checkbox" checked> Resumen semanal</label>
+            </div>
+            <div>
+              <div class="sub">Seguridad</div>
+              <button style="padding:10px 12px; border-radius:10px; border:0; background:rgba(255,255,255,.1); color:var(--text)">Cambiar contraseña</button>
+            </div>
+            <div>
+              <div class="sub">Tema</div>
+              <button id="toggleTheme" style="padding:10px 12px; border-radius:10px; border:0; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#05221d; font-weight:800">Modo contraste</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="help" class="section" aria-label="Centro de ayuda">
+        <div class="card">
+          <h3>FAQ</h3>
+          <details open class="rec"><summary><b>¿Cómo mide GreenPaperTech el consumo?</b></summary><div class="sub">Se integra a métricas de CPU, RAM, Disco y Red y estima kWh por app.</div></details>
+          <details class="rec"><summary><b>¿Qué es una recomendación de IA?</b></summary><div class="sub">Es una sugerencia accionable (arquitectura, configuración o código) para reducir consumo.</div></details>
+          <details class="rec"><summary><b>¿Puedo exportar reportes?</b></summary><div class="sub">Sí, PDF y CSV desde la sección Reportes.</div></details>
+        </div>
+      </section>
+
+      <section id="logout" class="section" aria-label="Salir">
+        <div class="card">
+          <h3>¿Deseas cerrar sesión?</h3>
+          <button style="padding:10px 14px; border-radius:10px; border:0; background:var(--danger); color:#fff; font-weight:800">Cerrar sesión</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="userModal" style="border:0; border-radius:18px; padding:0; background:transparent">
+    <form method="dialog" style="min-width:320px; background:var(--panel); color:var(--text); padding:18px; border-radius:18px; border:1px solid rgba(255,255,255,.1); box-shadow:var(--shadow)">
+      <h3>Nuevo usuario</h3>
+      <label>Nombre<br><input id="uName" required style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)"></label>
+      <br><br>
+      <label>Rol<br>
+        <select id="uRole" style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text)">
+          <option>Administrador</option>
+          <option>Analista</option>
+          <option>Invitado</option>
+        </select>
+      </label>
+      <br><br>
+      <menu style="display:flex; justify-content:flex-end; gap:10px; padding:0; margin:0">
+        <button value="cancel" style="padding:10px 12px; border-radius:10px; border:0; background:rgba(255,255,255,.1); color:var(--text)">Cancelar</button>
+        <button id="saveUser" value="default" style="padding:10px 12px; border-radius:10px; border:0; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#05221d; font-weight:800">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // Sidebar toggle
+      const app = document.getElementById('app');
+      const hamb = document.getElementById('hamb');
+      if(hamb && app) hamb.addEventListener('click', ()=> app.classList.toggle('collapse'));
+
+      // Menu routing
+      const links = Array.from(document.querySelectorAll('#menu a'));
+      const sections = Array.from(document.querySelectorAll('.section'));
+      links.forEach(a=> a.addEventListener('click', e=>{
+        e.preventDefault();
+        links.forEach(l=> l.classList.remove('active'));
+        a.classList.add('active');
+        const id = a.dataset.section;
+        sections.forEach(s=> s.classList.toggle('active', s.id === id));
+        if (window.innerWidth < 860 && app) app.classList.add('collapse'); // auto-close on mobile
+      }));
+
+      // Count-up numbers
+      const counters = Array.from(document.querySelectorAll('.num'));
+      const animateCount = el => {
+        const target = Number(el.dataset.count) || 0;
+        const dur = 1000; const start = performance.now();
+        const dec = target % 1 !== 0 ? 1 : 0;
+        function step(t){
+          const p = Math.min(1, (t - start)/dur);
+          const val = (target * p).toFixed(dec);
+          el.textContent = val;
+          if(p<1) requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      }
+      counters.forEach(animateCount);
+
+      // Simulación gráfica general (dashboard principal)
+      const line = document.getElementById('linePath');
+      let phase = 0;
+      if(line){
+        setInterval(()=>{
+          phase += 10;
+          const y = n => 110 + Math.sin((n + phase)/50) * 30;
+          const pts = [];
+          for(let x=0; x<=600; x+=60){ pts.push(`${x} ${y(x)}`) }
+          try{ line.setAttribute('d', 'M' + pts.join(' L ')); }
+          catch(e){ console.warn('No se pudo actualizar linePath:', e) }
+        }, 900);
+      } else {
+        console.warn('Elemento #linePath no encontrado — se omite la animación principal.');
+      }
+
+      // CPU y RAM · Live (simulados) + porcentaje visual
+      function clamp(v,min,max){ return Math.max(min, Math.min(max, Math.round(v))); }
+      function generateWave(baseY, amplitude, offset){
+        const pts=[];
+        for(let x=0;x<=600;x+=60){
+          const noise = Math.sin((Date.now()/400 + x + (offset||0))/25);
+          const y = baseY + noise * amplitude;
+          pts.push(`${x} ${y}`);
+        }
+        return 'M' + pts.join(' L ');
+      }
+
+      const cpuPath = document.getElementById('cpuPath');
+      const ramPath = document.getElementById('ramPath');
+      const cpuPct = document.getElementById('cpuPct');
+      const ramPct = document.getElementById('ramPct');
+
+      if(cpuPath || ramPath){
+        setInterval(()=>{
+          if(cpuPath){
+            const cpuVal = clamp(55 + Math.sin(Date.now()/600)*22 + (Math.random()*6 - 3), 5, 98);
+            const cpuD = generateWave(120, 25, 0);
+            try{ cpuPath.setAttribute('d', cpuD); } catch(e){ console.warn('cpuPath update failed', e) }
+            if(cpuPct) cpuPct.textContent = cpuVal + '%';
+          }
+          if(ramPath){
+            const ramVal = clamp(40 + Math.cos(Date.now()/700)*20 + (Math.random()*6 - 3), 8, 95);
+            const ramD = generateWave(140, 18, 100);
+            try{ ramPath.setAttribute('d', ramD); } catch(e){ console.warn('ramPath update failed', e) }
+            if(ramPct) ramPct.textContent = ramVal + '%';
+          }
+        }, 1000);
+      } else {
+        console.warn('cpuPath / ramPath no encontrados — omitiendo simulación de métricas.');
+      }
+
+      // Progress bars entrance
+      Array.from(document.querySelectorAll('.progress > span')).forEach((bar, i)=>{
+        setTimeout(()=> bar.style.width = bar.style.width || '72%', 120 + i*140);
+      });
+
+      // Quick optimize tip
+      document.getElementById('quickOptimize')?.addEventListener('click', ()=>{
+        const recs = document.getElementById('recs');
+        if(!recs) return;
+        const el = document.createElement('div');
+        el.className = 'rec';
+        el.textContent = 'Activar tail‑latency SLO y reducir replicas ociosas nocturnas (ahorro estimado 12%).';
+        recs.prepend(el);
+      });
+
+      // Users demo data
+      const users = [
+        {name:'Admin Root', role:'Administrador', state:'Activo'},
+        {name:'Analista 01', role:'Analista', state:'Activo'},
+        {name:'Invitado QA', role:'Invitado', state:'Pendiente'},
+      ];
+      const userTable = document.getElementById('userTable');
+      const renderUsers = () => {
+        if(!userTable) return;
+        userTable.innerHTML = users.map(u => `
+          <tr>
+            <td style="padding:12px; border-top:1px solid rgba(255,255,255,.08)">${u.name}</td>
+            <td style="padding:12px; border-top:1px solid rgba(255,255,255,.08)">${u.role}</td>
+            <td style="padding:12px; border-top:1px solid rgba(255,255,255,.08)">${u.state}</td>
+            <td style="padding:12px; border-top:1px solid rgba(255,255,255,.08)">
+              <button style="padding:6px 10px; border-radius:9px; border:0; background:rgba(255,255,255,.1); color:var(--text)">Editar</button>
+              <button class="del" style="padding:6px 10px; border-radius:9px; border:0; background:#ff5d6c; color:#fff">Eliminar</button>
+            </td>
+          </tr>`).join('');
+        Array.from(userTable.querySelectorAll('.del')).forEach((btn, i)=> btn.addEventListener('click', ()=>{ users.splice(i,1); renderUsers() }))
+      }
+      renderUsers();
+
+      // Add user modal
+      const modal = document.getElementById('userModal');
+      document.getElementById('addUser')?.addEventListener('click', ()=> modal?.showModal());
+      document.getElementById('saveUser')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const name = document.getElementById('uName')?.value.trim();
+        const role = document.getElementById('uRole')?.value;
+        if(name){ users.push({name, role, state:'Activo'}); renderUsers(); modal?.close(); }
+      });
+
+      // AI plan generator (mock)
+      document.getElementById('runAI')?.addEventListener('click', ()=>{
+        const goal = document.getElementById('goal')?.value || 'Reducir 20% consumo';
+        const out = document.getElementById('aiPlan');
+        if(!out) return;
+        out.innerHTML = '';
+        const steps = [
+          'Analizar perfiles de uso con 24h de trazas y detectar picos >85%',
+          'Activar autoscaling por SLO y colas asincrónicas',
+          'Mover storage a clase Infrequent Access y habilitar compresión',
+          'Refactorizar endpoints N+1 y cachear respuestas frías 15 min',
+        ];
+        steps.forEach((t,i)=>{
+          const d = document.createElement('div');
+          d.className = 'rec';
+          d.textContent = `${i+1}. ${t}`;
+          out.appendChild(d);
+        });
+        const summary = document.createElement('div');
+        summary.className = 'rec';
+        summary.innerHTML = `<b>Resultado esperado:</b> ${goal} (estimado 18–25%)`;
+        out.appendChild(summary);
+      });
+
+      // Export mock
+      document.getElementById('export')?.addEventListener('click', ()=>{
+        alert('Reporte exportado (demo)');
+      });
+
+      // Theme toggle (high-contrast pulse)
+      document.getElementById('toggleTheme')?.addEventListener('click', ()=>{
+        document.body.style.filter = document.body.style.filter ? '' : 'contrast(1.05) saturate(1.05)';
+      });
+
+    }); // DOMContentLoaded
+  </script>
+</body>
+</html>
